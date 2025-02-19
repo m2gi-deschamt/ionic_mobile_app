@@ -37,7 +37,7 @@ addIcons({ addOutline, chevronForward, ellipsisVertical });
       </ion-header>
 
       <ion-list>
-        @for(post of topic()?.posts; track post.id) {
+        @for(post of posts(); track post.id) {
 
         <ion-item>
           <ion-button
@@ -96,6 +96,9 @@ export class TopicDetailsPage {
 
   topic = toSignal(this.topicService.getById(this.topicId));
 
+  posts = toSignal(this.topicService.getPostsByTopicId(this.topicId));
+
+
   async openModal(post?: Post): Promise<void> {
     const modal = await this.modalCtrl.create({
       component: CreatePostModal,
@@ -118,7 +121,7 @@ export class TopicDetailsPage {
       data: { action },
     } = await popover.onDidDismiss();
 
-    console.log(action);
+    //console.log(action);
 
     if (action === 'remove') this.topicService.removePost(this.topicId, post);
     else if (action === 'edit') this.openModal(post);

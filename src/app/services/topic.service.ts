@@ -1,89 +1,66 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Topic, Topics } from '../models/topic';
-import { Post, Posts } from '../models/post';
+import { Post } from '../models/post';
 import { generateUUID } from '../utils/generate-uuid';
-import { BehaviorSubject, map, Observable, of } from 'rxjs';
+import { Observable } from 'rxjs';
+import { Firestore, collection, collectionData, doc, docData, setDoc, updateDoc, deleteDoc, addDoc } from '@angular/fire/firestore';
 
 @Injectable({
   providedIn: 'root',
 })
 export class TopicService {
-  private _topics: BehaviorSubject<Topics> = new BehaviorSubject([
-    { id: '1', name: 'Topic 1', posts: [{ id: '1', name: 'Post 1' }] },
-    { id: '2', name: 'Topic 2', posts: [] },
-  ]);
+  private firestore = inject(Firestore);
+
+  topicsCollection = collection(this.firestore, 'topics');
 
   getAll(): Observable<Topics> {
-    return this._topics.asObservable();
+    return collectionData(this.topicsCollection, { idField: 'id' }) as Observable<Topic[]>;
   }
 
   getById(topicId: string): Observable<Topic | undefined> {
-    return this._topics.pipe(
-      map((topics) => topics.find((topic) => topic.id === topicId))
-    );
+    const topicDoc = doc(this.firestore, `topics/${topicId}`);
+    return docData(topicDoc, { idField: 'id' }) as Observable<Topic | undefined>;
   }
 
-  addTopic(topic: Omit<Topic, 'id' | 'posts'>): void {
+  getPostsByTopicId(topicId: string): Observable<Post[]> {
+    const postsCollection = collection(this.firestore, `topics/${topicId}/posts`);
+    return collectionData(postsCollection, { idField: 'id' }) as Observable<Post[]>;
+  }
+
+  async addTopic(topic: Omit<Topic, 'id' | 'posts'>): Promise<void> {
+    const id = generateUUID();
     const _topic: Topic = {
       ...topic,
-      id: generateUUID(),
+      id,
       posts: [],
     };
-    this._topics.next([...this._topics.value, _topic]);
+    const topicDoc = doc(this.firestore, `topics/${id}`);
+    await setDoc(topicDoc, _topic);
   }
 
-  editTopic(topic: Topic): void {
-    this._topics.next(
-      this._topics.value.map((_topic) =>
-        _topic.id === topic.id ? topic : _topic
-      )
-    );
+  async editTopic(topic: Topic): Promise<void> {
+    const topicDoc = doc(this.firestore, `topics/${topic.id}`);
+    await updateDoc(topicDoc, { name: topic.name });
   }
 
-  removeTopic(topic: Topic): void {
-    this._topics.next(
-      this._topics.value.filter((_topic) => _topic.id !== topic.id)
-    );
+  async removeTopic(topic: Topic): Promise<void> {
+    const topicDoc = doc(this.firestore, `topics/${topic.id}`);
+    await deleteDoc(topicDoc);
   }
 
-  addPost(topicId: string, post: Omit<Post, 'id'>): void {
-    this._topics.next(
-      this._topics.value.map((topic) =>
-        topic.id === topicId
-          ? {
-              ...topic,
-              posts: [...topic.posts, { ...post, id: generateUUID() }],
-            }
-          : topic
-      )
-    );
-  }
+  async addPost(topicId: string, post: Omit<Post, 'id'>): Promise<void> {
+    const postsCollection = collection(this.firestore, `topics/${topicId}/posts`);
+    const newPost: Post = { ...post, id: generateUUID() };
+    await addDoc(postsCollection, newPost);
+}
+ 
+async editPost(topicId: string, post: Post): Promise<void> {
+  const postDoc = doc(this.firestore, `topics/${topicId}/posts/${post.id}`);
+  await updateDoc(postDoc, { ...post });
+}
 
-  editPost(topicId: string, post: Post): void {
-    this._topics.next(
-      this._topics.value.map((topic) =>
-        topic.id === topicId
-          ? {
-              ...topic,
-              posts: topic.posts.map((_post) =>
-                _post.id === post.id ? { ...post, id: _post.id } : _post
-              ),
-            }
-          : topic
-      )
-    );
-  }
-
-  removePost(topicId: string, post: Post): void {
-    this._topics.next(
-      this._topics.value.map((topic) =>
-        topic.id === topicId
-          ? {
-              ...topic,
-              posts: topic.posts.filter((_post) => _post.id !== post.id),
-            }
-          : topic
-      )
-    );
-  }
+async removePost(topicId: string, post: Post): Promise<void> {
+  const postDoc = doc(this.firestore, `topics/${topicId}/posts/${post.id}`);
+  await deleteDoc(postDoc);
+}
 }
