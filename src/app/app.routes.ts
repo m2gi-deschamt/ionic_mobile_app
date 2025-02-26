@@ -40,5 +40,8 @@ export const routes: Routes = [
     path: 'auth',
     loadComponent: () => import('./auth/auth.page').then( m => m.AuthPage)
   },
-  
+  {
+    path: 'logout',
+    loadComponent: () => import('./logout/logout.page').then( m => m.LogoutPage)
+  },
 ];
