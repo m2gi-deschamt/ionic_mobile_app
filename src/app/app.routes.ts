@@ -19,7 +19,7 @@ export const routes: Routes = [
     ],
     path: 'topics',
     loadComponent: () =>
-      import('./topics/topics.page').then((m) => m.TopicsPage),
+      import('./components/topics/topics.page').then((m) => m.TopicsPage),
   },
   {
     canActivate: [
@@ -27,7 +27,7 @@ export const routes: Routes = [
     ],
     path: 'topics/:id',
     loadComponent: () =>
-      import('./topics/topic-details/topic-details.page').then(
+      import('./components/topics/topic-details/topic-details.page').then(
         (m) => m.TopicDetailsPage
       ),
   },
@@ -38,5 +38,9 @@ export const routes: Routes = [
   },
   {
     path:'login'
+  },
+  {
+    path: 'login',
+    loadComponent: () => import('./pages/login/login.page').then( m => m.LoginPage)
   }
 ];
