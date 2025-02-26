@@ -7,7 +7,7 @@ export const isAuthentificated = () => {
   const _authService = inject(AuthService);
   const _router = inject(Router);
   return _authService.getConnectedAuth().pipe(map(user => {
-    if(!user) _router.navigateByUrl('/login');
+    if(!user) _router.navigateByUrl('/auth');
     return !!user;
   }))
 };

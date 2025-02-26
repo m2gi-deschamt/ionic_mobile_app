@@ -5,6 +5,8 @@ import { AuthService } from '../services/auth/auth.service';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
+const INVALID_CRDENTIALS = "INVALID_LOGIN_CREDENTIALS";
+
 @Component({
   standalone: true,
   selector: 'app-auth',
@@ -12,15 +14,19 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./auth.page.scss'],
   imports: [IonicModule, ReactiveFormsModule, CommonModule],
 })
+
 export class AuthPage implements OnInit {
   authForm!: FormGroup;
   isLogin = true;
+  errorMessage = '';
+  
 
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private router = inject(Router);
 
   ngOnInit(): void {
+    this.errorMessage = '';
     this.authForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', Validators.required],
@@ -33,28 +39,30 @@ export class AuthPage implements OnInit {
     this.ngOnInit();
   }
 
-  async onSubmit(): Promise<void> {
+  async onSubmit() {
     if (this.authForm.invalid) {
       return;
     }
-    const { email, password } = this.authForm.value;
-    if (this.isLogin) {
+    const { email, password, confirmPassword } = this.authForm.value;
+  
+    if (!this.isLogin && password !== confirmPassword) {
+      this.errorMessage = "Les mots de passe ne correspondent pas";
+      return;
+    }
+    if (password.length < 6) {
+      this.errorMessage = "Le mot de passe doit contenir au moins 6 caractères";
+      return;
+    }
+    else {
       try {
-        await this.authService.signIn(email, password);
+        if (this.isLogin) {
+          await this.authService.signIn(email, password);
+        } else {
+          await this.authService.addUser(email, password);
+        }
         this.router.navigateByUrl('/topics');
-      } catch (error) {
-        console.error('Erreur de connexion', error);
-      }
-    } else {
-      if (this.authForm.value.password !== this.authForm.value.confirmPassword) {
-        console.error('Les mots de passe ne correspondent pas');
-        return;
-      }
-      try {
-        await this.authService.addUser(email, password);
-        this.router.navigateByUrl('/topics');
-      } catch (error) {
-        console.error('Erreur lors de l inscription', error);
+      } catch (error: any) {
+        this.errorMessage = error.message || (this.isLogin ? "Erreur de connexion" : "Erreur lors de l'inscription");
       }
     }
   }

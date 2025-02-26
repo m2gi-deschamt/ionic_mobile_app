@@ -15,9 +15,7 @@ export class LogoutPage implements OnInit {
   private router = inject(Router);
 
   ngOnInit(): void {
-    // Effectuer le logout
     this.authService.signOut();
-    // Redirection vers la page d'authentification
     this.router.navigateByUrl('/auth');
   }
 }

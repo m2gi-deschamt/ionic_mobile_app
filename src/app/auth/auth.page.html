@@ -27,9 +27,19 @@
             {{ isLogin ? 'Se connecter' : 'S’inscrire' }}
           </ion-button>
         </form>
+        @if (errorMessage){
+          <div class="error-message">
+            {{ errorMessage }}
+          </div>
+        }
+        
         <div class="auth-toggle">
-          <p class="user-have-account" *ngIf="isLogin">Vous n'avez pas de compte ?</p>
-          <p class="user-have-account" *ngIf="!isLogin">Vous avez déjà un compte ?</p>
+          @if(isLogin){
+            <p class="user-have-account">Vous n'avez pas de compte ?</p>
+          }
+          @else{
+            <p class="user-have-account">Vous avez déjà un compte ?</p>
+          }
           <ion-button fill="clear" size="small" (click)="toggleMode()">
             {{ isLogin ? 'S’inscrire' : 'Se connecter' }}
           </ion-button>
