@@ -1,6 +1,6 @@
 <ion-header translucent="true">
   <ion-toolbar color="primary">
-    <ion-title>{{ isLogin ? 'Connexion' : 'Inscription' }}</ion-title>
+    <ion-title class="title">{{ isLogin ? 'Connexion' : 'Inscription' }}</ion-title>
   </ion-toolbar>
 </ion-header>
 <ion-content class="login-content">
@@ -10,11 +10,11 @@
         <h2 class="login-title">Bienvenue</h2>
         <form [formGroup]="authForm" (ngSubmit)="onSubmit()">
           <ion-item lines="none" class="login-item">
-            <ion-label position="floating" class="email-label">Email</ion-label>
+            <ion-label position="stacked" class="email-label">Email</ion-label>
             <ion-input type="email" formControlName="email"></ion-input>
           </ion-item>
           <ion-item lines="none" class="login-item">
-            <ion-label position="floating" class="password-label">Mot de passe</ion-label>
+            <ion-label position="stacked" class="password-label">Mot de passe</ion-label>
             <ion-input type="password" formControlName="password"></ion-input>
           </ion-item>
           <ng-container *ngIf="!isLogin">
