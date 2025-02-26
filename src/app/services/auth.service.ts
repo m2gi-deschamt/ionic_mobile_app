@@ -11,9 +11,9 @@ export class AuthService {
     return user(this.auth);
   }
   
-  // addUser(email : string, password : string): Promise<UserCredential> {
-  //   return (this.auth, email, password);
-  // }
+  addUser(email: string, password: string): Promise<UserCredential> {
+    return createUserWithEmailAndPassword(this.auth, email, password);
+  }
 
   signIn(email: string, password: string): Promise<UserCredential> {
     return signInWithEmailAndPassword(this.auth, email, password);
@@ -23,8 +23,9 @@ export class AuthService {
     return signOut(this.auth)
   }
 
-  	
-  // isConnected(): User {
-  // }
+  isConnected(): User | null {
+    return this.auth.currentUser;
+  }
+  
   constructor() { }
 }
