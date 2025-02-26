@@ -1,12 +1,30 @@
-import { Routes } from '@angular/router';
+import { inject } from '@angular/core';
+import { Router, Routes } from '@angular/router';
+import { AuthService } from './services/auth.service';
+import { map } from 'rxjs';
+
+export const isAuthentificated = () => {
+  const _authService = inject(AuthService);
+  const _router = inject(Router);
+  return _authService.getConnectedAuth().pipe(map(user => {
+    if(!user) _router.navigateByUrl('/login');
+    return !!user;
+  }))
+};
 
 export const routes: Routes = [
   {
+    canActivate: [
+      isAuthentificated
+    ],
     path: 'topics',
     loadComponent: () =>
       import('./topics/topics.page').then((m) => m.TopicsPage),
   },
   {
+    canActivate: [
+      isAuthentificated
+    ],
     path: 'topics/:id',
     loadComponent: () =>
       import('./topics/topic-details/topic-details.page').then(
@@ -18,4 +36,7 @@ export const routes: Routes = [
     redirectTo: 'topics',
     pathMatch: 'full',
   },
+  {
+    path:'login'
+  }
 ];
