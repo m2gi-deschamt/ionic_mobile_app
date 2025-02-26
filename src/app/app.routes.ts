@@ -1,6 +1,6 @@
 import { inject } from '@angular/core';
 import { Router, Routes } from '@angular/router';
-import { AuthService } from './services/auth.service';
+import { AuthService } from './services/auth/auth.service';
 import { map } from 'rxjs';
 
 export const isAuthentificated = () => {
@@ -19,7 +19,7 @@ export const routes: Routes = [
     ],
     path: 'topics',
     loadComponent: () =>
-      import('./components/topics/topics.page').then((m) => m.TopicsPage),
+      import('./topics/topics.page').then((m) => m.TopicsPage),
   },
   {
     canActivate: [
@@ -27,7 +27,7 @@ export const routes: Routes = [
     ],
     path: 'topics/:id',
     loadComponent: () =>
-      import('./components/topics/topic-details/topic-details.page').then(
+      import('./topics/topic-details/topic-details.page').then(
         (m) => m.TopicDetailsPage
       ),
   },
@@ -37,10 +37,7 @@ export const routes: Routes = [
     pathMatch: 'full',
   },
   {
-    path:'login'
-  },
-  {
     path: 'login',
-    loadComponent: () => import('./pages/login/login.page').then( m => m.LoginPage)
+    loadComponent: () => import('./login/login.page').then( m => m.LoginPage)
   }
 ];

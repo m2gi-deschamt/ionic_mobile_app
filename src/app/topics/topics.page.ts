@@ -1,6 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
-import { TopicService } from '../services/topic.service';
+import { TopicService } from '../services/topic/topic.service';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { addIcons } from 'ionicons';

@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
-import { Topic, Topics } from '../models/topic';
-import { Post } from '../models/post';
-import { generateUUID } from '../utils/generate-uuid';
+import { Topic, Topics } from '../../models/topic';
+import { Post } from '../../models/post';
+import { generateUUID } from '../../utils/generate-uuid';
 import { Observable } from 'rxjs';
 import { Firestore, collection, collectionData, doc, docData, setDoc, updateDoc, deleteDoc, addDoc } from '@angular/fire/firestore';
 

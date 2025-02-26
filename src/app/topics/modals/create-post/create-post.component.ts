@@ -8,7 +8,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
-import { TopicService } from 'src/app/services/topic.service';
+import { TopicService } from 'src/app/services/topic/topic.service';
 import { ModalController } from '@ionic/angular/standalone';
 import { Post } from 'src/app/models/post';
 import { toSignal } from '@angular/core/rxjs-interop';
