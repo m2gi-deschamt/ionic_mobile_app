@@ -63,3 +63,13 @@
     --background-hover: #6377e3;
     font-weight: bold;
   }
+  .auth-toggle {
+    text-align: center; 
+    justify-content: center;
+    margin-top: 15px; 
+    display: flex;
+  }
+
+  .auth-toggle .user-have-account {
+    margin-top: 5px;
+  }
