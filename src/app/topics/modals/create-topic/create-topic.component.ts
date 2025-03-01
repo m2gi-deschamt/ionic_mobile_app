@@ -18,39 +18,8 @@ import { Observable, filter, map } from 'rxjs';
 @Component({
   selector: 'app-create-topic',
   imports: [IonicModule, ReactiveFormsModule, CommonModule],
-  template: `
-    <form [formGroup]="topicForm" (ngSubmit)="onSubmit()">
-      <ion-header>
-        <ion-toolbar>
-          <ion-buttons slot="start">
-            <ion-button (click)="cancel()" color="medium">Cancel</ion-button>
-          </ion-buttons>
-          <ion-title>Welcome</ion-title>
-          <ion-buttons slot="end">
-            <ion-button
-              type="submit"
-              [disabled]="this.topicForm.invalid"
-              [strong]="true"
-              >Confirm</ion-button
-            >
-          </ion-buttons>
-        </ion-toolbar>
-      </ion-header>
-      <ion-content class="ion-padding" [fullscreen]="true">
-        <ion-input
-          formControlName="name"
-          fill="solid"
-          name="name"
-          label="Enter topic name"
-          labelPlacement="floating"
-          placeholder="Topic name"
-          [helperText]="
-            'Enter a name with at least ' + NAME_MIN_LENGTH + ' characters.'
-          "
-        ></ion-input>
-      </ion-content>
-    </form>
-  `,
+  templateUrl: './create-topic.component.html',
+  styleUrls: ['./create-topic.component.scss'],
 })
 export class CreateTopicModal implements OnInit {
   private readonly topicService = inject(TopicService);

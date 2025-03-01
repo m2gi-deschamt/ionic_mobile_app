@@ -1,15 +1,24 @@
 import { inject } from '@angular/core';
 import { Router, Routes } from '@angular/router';
 import { AuthService } from './services/auth/auth.service';
-import { map } from 'rxjs';
+import { catchError, map, of } from 'rxjs';
 
 export const isAuthentificated = () => {
   const _authService = inject(AuthService);
   const _router = inject(Router);
-  return _authService.getConnectedAuth().pipe(map(user => {
-    if(!user) _router.navigateByUrl('/auth');
-    return !!user;
-  }))
+  return _authService.getConnectedAuth().pipe(
+    map(user => {
+      if(!user) {
+        _router.navigateByUrl('/auth');
+        return false;
+      }
+      return true;
+    }),
+    catchError(() => {
+      _router.navigateByUrl('/auth');
+      return of(false);
+    })
+  );
 };
 
 export const routes: Routes = [

@@ -31,4 +31,7 @@ export class NaviguationComponent implements OnInit {
     this.authService.signOut();
     this.router.navigate(['/auth']);
   }
+  home() {
+    this.router.navigate(['']);
+  }
 }

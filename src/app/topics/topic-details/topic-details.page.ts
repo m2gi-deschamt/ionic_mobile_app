@@ -17,72 +17,8 @@ addIcons({ addOutline, chevronForward, ellipsisVertical });
 
 @Component({
   selector: 'app-topic-details',
-  template: `
-    <ion-header [translucent]="true">
-      <ion-toolbar>
-        <ion-breadcrumbs>
-          <ion-breadcrumb routerLink="">Topics</ion-breadcrumb>
-          <ion-breadcrumb [routerLink]="'#topics/' + topic()?.id">{{
-            topic()?.name
-          }}</ion-breadcrumb>
-        </ion-breadcrumbs>
-      </ion-toolbar>
-    </ion-header>
-
-    <ion-content [fullscreen]="true">
-      <ion-header collapse="condense">
-        <ion-toolbar>
-          <ion-title size="large">{{ topic()?.name }}</ion-title>
-        </ion-toolbar>
-      </ion-header>
-
-      <ion-list>
-        @for(post of posts(); track post.id) {
-
-        <ion-item>
-          <ion-button
-            slot="start"
-            fill="clear"
-            id="click-trigger"
-            (click)="presentPostManagementPopover($event, post)"
-            aria-label="open post management popover"
-            data-cy="open-post-management-popover"
-            ><ion-icon
-              slot="icon-only"
-              color="medium"
-              name="ellipsis-vertical"
-            ></ion-icon
-          ></ion-button>
-          <ion-label>{{ post.name }}</ion-label>
-        </ion-item>
-
-        } @empty {
-        <ion-img
-          class="image"
-          src="assets/img/no_data.svg"
-          alt="No data"
-        ></ion-img>
-        }
-      </ion-list>
-      <ion-fab slot="fixed" vertical="bottom" horizontal="end">
-        <ion-fab-button
-          data-cy="open-create-post-modal-button"
-          aria-label="open add post modal"
-          (click)="openModal()"
-        >
-          <ion-icon name="add-outline"></ion-icon>
-        </ion-fab-button>
-      </ion-fab>
-    </ion-content>
-  `,
-  styles: [
-    `
-      .image::part(image) {
-        width: 50%;
-        margin: auto;
-      }
-    `,
-  ],
+  templateUrl: './topic-details.page.html',
+  styleUrls: ['./topic-details.page.scss'],
   standalone: true,
   imports: [IonicModule, CommonModule, FormsModule, RouterLink],
 })

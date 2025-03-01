@@ -17,52 +17,8 @@ import { Observable, filter, map } from 'rxjs';
 @Component({
   selector: 'app-create-post',
   imports: [IonicModule, ReactiveFormsModule],
-  template: `
-    <form [formGroup]="postForm" (ngSubmit)="onSubmit()">
-      <ion-header>
-        <ion-toolbar>
-          <ion-buttons slot="start">
-            <ion-button (click)="cancel()" color="medium">Cancel</ion-button>
-          </ion-buttons>
-          <ion-title>Welcome</ion-title>
-          <ion-buttons slot="end">
-            <ion-button
-              type="submit"
-              [disabled]="this.postForm.invalid"
-              [strong]="true"
-              >Confirm</ion-button
-            >
-          </ion-buttons>
-        </ion-toolbar>
-      </ion-header>
-      <ion-content class="ion-padding" [fullscreen]="true">
-        <ion-input
-          formControlName="name"
-          fill="solid"
-          label="Enter post name"
-          labelPlacement="floating"
-          placeholder="Post name"
-          [helperText]="
-            'Enter a name with at least ' + NAME_MIN_LENGTH + ' characters.'
-          "
-          [errorText]="nameErrorText()"
-        ></ion-input>
-        <ion-input
-          formControlName="description"
-          fill="solid"
-          label="Enter post description"
-          labelPlacement="floating"
-          placeholder="Post description"
-          [helperText]="
-            'Enter a description with a maximum of ' +
-            DESCRIPTION_MAX_LENGTH +
-            ' characters.'
-          "
-          [errorText]="descriptionErrorText"
-        ></ion-input>
-      </ion-content>
-    </form>
-  `,
+  templateUrl: './create-post.component.html',
+  styleUrls: ['./create-post.component.scss'],
 })
 export class CreatePostModal implements OnInit {
   private readonly topicService = inject(TopicService);

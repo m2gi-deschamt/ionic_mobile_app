@@ -2,6 +2,7 @@ import { Post } from './post';
 
 export interface Topic {
   id: string;
+  userId: string;
   name: string;
   posts: Post[];
 }
