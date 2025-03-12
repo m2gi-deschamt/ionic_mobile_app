@@ -127,8 +127,14 @@ export class TopicService {
     }
     
     const postsCollection = collection(this.firestore, `topics/${topicId}/posts`);
-    const newPost: Post = { ...post, id: generateUUID() };
-    await addDoc(postsCollection, newPost);
+    const id = generateUUID();
+    const newPost: Post = { 
+      id, 
+      name: post.name, 
+      description: post.description 
+    };
+    
+    await setDoc(doc(postsCollection, id), newPost);
   }
  
   async editPost(topicId: string, post: Post): Promise<void> {
@@ -145,7 +151,11 @@ export class TopicService {
     }
     
     const postDoc = doc(this.firestore, `topics/${topicId}/posts/${post.id}`);
-    await updateDoc(postDoc, { ...post });
+    const postData = {
+      name: post.name,
+      description: post.description || ''
+    };
+    await updateDoc(postDoc, postData);
   }
 
   async removePost(topicId: string, post: Post): Promise<void> {
