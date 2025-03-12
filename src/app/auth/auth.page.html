@@ -9,6 +9,12 @@
       <ion-card-content>
         <h2 class="login-title">Bienvenue</h2>
         <form [formGroup]="authForm" (ngSubmit)="onSubmit()">
+          @if (!isLogin){
+            <ion-item lines="none" class="login-item">
+              <ion-label position="stacked" class="username-label">Username</ion-label>
+              <ion-input formControlName="username"></ion-input>
+            </ion-item>
+          }
           <ion-item lines="none" class="login-item">
             <ion-label position="stacked" class="email-label">Email</ion-label>
             <ion-input type="email" formControlName="email"></ion-input>
@@ -17,12 +23,14 @@
             <ion-label position="stacked" class="password-label">Mot de passe</ion-label>
             <ion-input type="password" formControlName="password"></ion-input>
           </ion-item>
-          <ng-container *ngIf="!isLogin">
-            <ion-item lines="none" class="login-item">
-              <ion-label position="floating" class="password-label">Confirmer mot de passe</ion-label>
-              <ion-input type="password" formControlName="confirmPassword"></ion-input>
-            </ion-item>
-          </ng-container>
+          @if (!isLogin){
+            <ng-container>
+              <ion-item lines="none" class="login-item">
+                <ion-label position="floating" class="password-label">Confirmer mot de passe</ion-label>
+                <ion-input type="password" formControlName="confirmPassword"></ion-input>
+              </ion-item>
+            </ng-container>
+          }
           <ion-button expand="block" type="submit" [disabled]="authForm.invalid" class="login-button">
             {{ isLogin ? 'Se connecter' : 'S’inscrire' }}
           </ion-button>

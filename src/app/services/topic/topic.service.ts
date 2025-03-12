@@ -3,8 +3,10 @@ import { Topic, Topics } from '../../models/topic';
 import { Post } from '../../models/post';
 import { generateUUID } from '../../utils/generate-uuid';
 import { Observable, map, of, switchMap, firstValueFrom } from 'rxjs';
-import { Firestore, collection, collectionData, doc, docData, setDoc, updateDoc, deleteDoc, addDoc, query, where } from '@angular/fire/firestore';
+import { Firestore, collection, collectionData, doc, docData, setDoc, updateDoc, deleteDoc, addDoc, query, where, getDoc } from '@angular/fire/firestore';
 import { AuthService } from '../auth/auth.service';
+import { User } from 'src/app/models/user';
+
 
 @Injectable({
   providedIn: 'root',
@@ -62,15 +64,20 @@ export class TopicService {
     );
   }
 
-  async addTopic(topic: Omit<Topic, 'id' | 'posts' | 'userId'>): Promise<void> {
-    const userId = this.authService.isConnected()?.uid;
-    if (!userId) throw new Error('User not authenticated');
+  async addTopic(topic: Omit<Topic, 'id' | 'posts' | 'userId' | 'ownerUsername'>): Promise<void> {
+    const user = this.authService.isConnected();
+    if (!user?.uid) throw new Error('User not authenticated');
+    
+    const userDoc = doc(this.firestore, `users/${user.uid}`);
+    const userSnap = await getDoc(userDoc);
+    const userData = userSnap.data() as User;
     
     const id = generateUUID();
     const _topic: Topic = {
       ...topic,
       id,
-      userId,
+      userId: user.uid,
+      ownerUsername: userData.username || 'Unknown user',
       posts: [],
     };
     

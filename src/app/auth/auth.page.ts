@@ -5,6 +5,7 @@ import { AuthService } from '../services/auth/auth.service';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import {sendEmailVerification} from '@angular/fire/auth'
+import { UserService } from '../services/user/user.service';
 
 const INVALID_CRDENTIALS = "INVALID_LOGIN_CREDENTIALS";
 
@@ -24,6 +25,7 @@ export class AuthPage implements OnInit {
 
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
+  private userService = inject(UserService);
   private router = inject(Router);
 
   ngOnInit(): void {
@@ -31,6 +33,7 @@ export class AuthPage implements OnInit {
     this.authForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', Validators.required],
+      username: ['', [Validators.required, Validators.minLength(3)]],
       ...(this.isLogin ? {} : { confirmPassword: ['', Validators.required] })
     });
   }
@@ -44,7 +47,7 @@ export class AuthPage implements OnInit {
     if (this.authForm.invalid) {
       return;
     }
-    const { email, password, confirmPassword } = this.authForm.value;
+    const { email, password, confirmPassword, username } = this.authForm.value;
   
     if (!this.isLogin && password !== confirmPassword) {
       this.errorMessage = "Les mots de passe ne correspondent pas";
@@ -59,8 +62,14 @@ export class AuthPage implements OnInit {
         if (this.isLogin) {
           await this.authService.signIn(email, password);
         } else {
-          const user = await this.authService.addUser(email, password);
-          await sendEmailVerification(user.user);
+          const credential = await this.authService.addUser(email, password);
+      
+          await this.userService.createUpdateUser({
+            uid: credential.user.uid,
+            username: username
+          });
+
+          await sendEmailVerification(credential.user);
         }
         this.router.navigateByUrl('/topics');
       } catch (error: any) {
