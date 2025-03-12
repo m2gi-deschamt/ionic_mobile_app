@@ -12,7 +12,7 @@ import { User } from '@angular/fire/auth';
   selector: 'app-naviguation',
   templateUrl: './naviguation.component.html',
   styleUrls: ['./naviguation.component.scss'],
-  imports: [IonRouterLink, IonToolbar, IonTitle, IonHeader, IonButton, IonIcon, IonButtons, AsyncPipe]
+  imports: [IonToolbar, IonTitle, IonHeader, IonButton, IonIcon, IonButtons, AsyncPipe]
 })
 export class NaviguationComponent implements OnInit {
   private authService = inject(AuthService);

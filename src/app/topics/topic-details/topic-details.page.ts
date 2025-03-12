@@ -1,7 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonicModule } from '@ionic/angular';
+import { IonHeader, IonToolbar, IonBreadcrumbs, IonTitle, IonButton, IonImg, IonFab, IonFabButton, IonContent, IonList, IonItem, IonLabel, IonIcon } from '@ionic/angular/standalone';
 import { TopicService } from 'src/app/services/topic/topic.service';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ModalController } from '@ionic/angular/standalone';
@@ -20,7 +20,8 @@ addIcons({ addOutline, chevronForward, ellipsisVertical });
   templateUrl: './topic-details.page.html',
   styleUrls: ['./topic-details.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule, RouterLink],
+  imports: [IonHeader, IonToolbar, IonBreadcrumbs, IonTitle, IonButton, IonImg, IonFab, 
+    IonFabButton, IonContent, IonList, IonItem, IonLabel, IonIcon, CommonModule, FormsModule, RouterLink],
 })
 export class TopicDetailsPage {
   private readonly topicService = inject(TopicService);

@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
-import { IonicModule } from '@ionic/angular';
+import { IonContent, IonList, IonItem, IonLabel, IonIcon } from '@ionic/angular/standalone';
 import { PopoverController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { pencil, trash } from 'ionicons/icons';
@@ -9,7 +9,7 @@ addIcons({ trash, pencil });
 
 @Component({
   selector: 'app-manage-item',
-  imports: [IonicModule, ReactiveFormsModule],
+  imports: [IonContent, IonList, IonItem, IonLabel, IonIcon, ReactiveFormsModule],
   template: `
     <ion-content>
       <ion-list>

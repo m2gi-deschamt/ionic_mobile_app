@@ -7,7 +7,7 @@ import {
   TouchedChangeEvent,
   Validators,
 } from '@angular/forms';
-import { IonicModule } from '@ionic/angular';
+import { IonHeader, IonToolbar, IonContent, IonButton, IonButtons, IonInput } from '@ionic/angular/standalone';
 import { TopicService } from 'src/app/services/topic/topic.service';
 import { ModalController } from '@ionic/angular/standalone';
 import { Post } from 'src/app/models/post';
@@ -16,7 +16,8 @@ import { Observable, filter, map } from 'rxjs';
 
 @Component({
   selector: 'app-create-post',
-  imports: [IonicModule, ReactiveFormsModule],
+  imports: [IonHeader, IonToolbar, IonContent, IonButton, 
+    ReactiveFormsModule, IonButtons,IonInput],
   templateUrl: './create-post.component.html',
   styleUrls: ['./create-post.component.scss'],
 })

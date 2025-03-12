@@ -8,7 +8,8 @@ import {
   TouchedChangeEvent,
   Validators,
 } from '@angular/forms';
-import { IonicModule } from '@ionic/angular';
+import { IonHeader, IonToolbar, IonContent, IonButton, IonButtons, IonInput } from '@ionic/angular/standalone';
+
 import { TopicService } from 'src/app/services/topic/topic.service';
 import { ModalController } from '@ionic/angular/standalone';
 import { Topic } from 'src/app/models/topic';
@@ -17,7 +18,8 @@ import { Observable, filter, map } from 'rxjs';
 
 @Component({
   selector: 'app-create-topic',
-  imports: [IonicModule, ReactiveFormsModule, CommonModule],
+  imports: [IonHeader, IonToolbar, IonButtons, IonContent, IonButton, 
+  ReactiveFormsModule, CommonModule, IonInput],
   templateUrl: './create-topic.component.html',
   styleUrls: ['./create-topic.component.scss'],
 })

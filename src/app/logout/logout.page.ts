@@ -1,14 +1,14 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { AuthService } from '../services/auth/auth.service';
 import { Router } from '@angular/router';
-import { IonicModule } from '@ionic/angular';
+import { IonContent } from '@ionic/angular/standalone';
 
 @Component({
   standalone: true,
   selector: 'app-logout',
   template: '<ion-content></ion-content>',
   styleUrls: ['./logout.page.scss'],
-  imports: [IonicModule],
+  imports: [IonContent]
 })
 export class LogoutPage implements OnInit {
   private authService = inject(AuthService);

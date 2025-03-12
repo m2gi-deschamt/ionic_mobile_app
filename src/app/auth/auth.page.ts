@@ -1,9 +1,10 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, } from '@angular/forms';
-import { IonicModule } from '@ionic/angular';
+import { IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonItem, IonLabel, IonCardContent ,IonButton } from '@ionic/angular/standalone';
 import { AuthService } from '../services/auth/auth.service';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import {sendEmailVerification} from '@angular/fire/auth'
 
 const INVALID_CRDENTIALS = "INVALID_LOGIN_CREDENTIALS";
 
@@ -12,7 +13,7 @@ const INVALID_CRDENTIALS = "INVALID_LOGIN_CREDENTIALS";
   selector: 'app-auth',
   templateUrl: './auth.page.html',
   styleUrls: ['./auth.page.scss'],
-  imports: [IonicModule, ReactiveFormsModule, CommonModule],
+  imports: [IonHeader, IonToolbar, IonCardContent, IonTitle, IonContent, IonCard, IonItem, IonLabel, IonButton, ReactiveFormsModule, CommonModule],
 })
 
 export class AuthPage implements OnInit {
@@ -58,7 +59,8 @@ export class AuthPage implements OnInit {
         if (this.isLogin) {
           await this.authService.signIn(email, password);
         } else {
-          await this.authService.addUser(email, password);
+          const user = await this.authService.addUser(email, password);
+          await sendEmailVerification(user.user);
         }
         this.router.navigateByUrl('/topics');
       } catch (error: any) {
