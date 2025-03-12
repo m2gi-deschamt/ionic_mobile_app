@@ -12,7 +12,10 @@ export class AuthService {
   getConnectedAuth(): Observable<User | null> {
     return user(this.auth);
   }
-  
+  isEmailVerified(): boolean {
+    const user = this.auth.currentUser;
+    return user !== null && user.emailVerified === true;
+  }
   addUser(email: string, password: string): Promise<UserCredential> {
     return createUserWithEmailAndPassword(this.auth, email, password);
   }

@@ -86,17 +86,35 @@ export class AuthPage implements OnInit {
       try {
         if (this.isLogin) {
           await this.authService.signIn(email, password);
+          
+          // Check if email is verified
+          if (!this.authService.isEmailVerified()) {
+            this.errorMessage = "Veuillez vérifier votre email avant de vous connecter";
+            await this.authService.signOut();
+            return;
+          }
+          
+          // If email verified, navigate to topics
+          this.router.navigateByUrl('/topics');
         } else {
+          // Registration flow
           const credential = await this.authService.addUser(email, password);
       
           await this.userService.createUpdateUser({
             uid: credential.user.uid,
             username: username
           });
-
+  
           await sendEmailVerification(credential.user);
+          
+          // Sign out after registration and show message
+          await this.authService.signOut();
+          
+          // Switch to login mode
+          this.isLogin = true;
+          this.initForm();
+          this.errorMessage = "Un email de vérification vous a été envoyé. Veuillez vérifier votre email avant de vous connecter";
         }
-        this.router.navigateByUrl('/topics');
       } catch (error: any) {
         this.errorMessage = error.message || (this.isLogin ? "Erreur de connexion" : "Erreur lors de l'inscription");
       }

@@ -25,8 +25,25 @@ export class NaviguationComponent implements OnInit {
 
   ngOnInit() {
     this.isAuthenticated$ = this.authService.getConnectedAuth();
+    
+    // Subscribe to auth state changes
+    this.authService.getConnectedAuth().subscribe(user => {
+      if (user && !user.emailVerified) {
+        this.authService.signOut();
+        this.router.navigateByUrl('/auth');
+      }
+    });
   }
-
+  
+  checkAuthAndVerification() {
+    const user = this.authService.isConnected();
+    if (user && !user.emailVerified) {
+      this.authService.signOut();
+      this.router.navigateByUrl('/auth');
+      return false;
+    }
+    return true;
+  }
   logout() {
     this.authService.signOut();
     this.router.navigate(['/auth']);
