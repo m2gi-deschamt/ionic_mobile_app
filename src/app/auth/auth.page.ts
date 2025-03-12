@@ -146,21 +146,7 @@ export class AuthPage implements OnInit {
           this.setError("Un email de vérification vous a été envoyé. Veuillez vérifier votre email avant de vous connecter", true);
         }
       } catch (error: any) {
-        let errorMsg = "Une erreur s'est produite";
-        
-        if (error.code === 'auth/email-already-in-use') {
-          errorMsg = "Cette adresse email est déjà utilisée";
-        } else if (error.code === 'auth/invalid-email') {
-          errorMsg = "Adresse email invalide";
-        } else if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-          errorMsg = "Email ou mot de passe incorrect";
-        } else if (error.code === 'auth/too-many-requests') {
-          errorMsg = "Trop de tentatives de connexion. Veuillez réessayer plus tard";
-        } else if (error.message && error.message.includes(INVALID_CREDENTIALS)) {
-          errorMsg = "Email ou mot de passe incorrect";
-        }
-        
-        this.setError(errorMsg);
+        this.setError(error);
       }
     }
   }
