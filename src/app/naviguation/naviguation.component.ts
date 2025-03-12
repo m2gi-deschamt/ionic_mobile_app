@@ -46,7 +46,7 @@ export class NaviguationComponent implements OnInit {
   }
   logout() {
     this.authService.signOut();
-    this.router.navigate(['/auth']);
+    this.router.navigate(['/auth', { reset: true }]);
   }
   home() {
     this.router.navigate(['']);

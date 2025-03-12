@@ -3,12 +3,12 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, } from '@angul
 import { IonHeader, IonToolbar, IonTitle, IonContent, IonCard, IonItem, 
          IonLabel, IonCardContent, IonButton, IonInput } from '@ionic/angular/standalone';
 import { AuthService } from '../services/auth/auth.service';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { sendEmailVerification } from '@angular/fire/auth'
 import { UserService } from '../services/user/user.service';
 
-const INVALID_CRDENTIALS = "INVALID_LOGIN_CREDENTIALS";
+const INVALID_CREDENTIALS = "INVALID_LOGIN_CREDENTIALS";
 
 @Component({
   standalone: true,
@@ -34,18 +34,39 @@ export class AuthPage implements OnInit {
   authForm!: FormGroup;
   isLogin = true;
   errorMessage = '';
+  isVerificationMessage = false;
 
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private userService = inject(UserService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
+
 
   ngOnInit(): void {
-    this.initForm();
+    this.route.paramMap.subscribe(params => {
+      if (params.has('reset')) {
+        this.resetAuthPage();
+      } else {
+        this.initForm();
+      }
+    });
+  }
+
+  resetAuthPage(): void {
+    this.isLogin = true;
+    this.errorMessage = '';
+    this.isVerificationMessage = false;
+    this.authForm = this.fb.group({
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', Validators.required]
+    });
   }
 
   initForm(): void {
-    this.errorMessage = '';
+    if (!this.isVerificationMessage) {
+      this.errorMessage = '';
+    }
     
     if (this.isLogin) {
       this.authForm = this.fb.group({
@@ -64,9 +85,18 @@ export class AuthPage implements OnInit {
 
   toggleMode(): void {
     this.isLogin = !this.isLogin;
+    
+    // Clear verification flag when manually toggling between modes
+    this.isVerificationMessage = false;
+    this.errorMessage = '';
+    
     this.initForm();
   }
 
+  setError(message: string, isVerification = false): void {
+    this.errorMessage = message;
+    this.isVerificationMessage = isVerification;
+  }
 
   async onSubmit() {
     if (this.authForm.invalid) {
@@ -75,11 +105,11 @@ export class AuthPage implements OnInit {
     const { email, password, confirmPassword, username } = this.authForm.value;
   
     if (!this.isLogin && password !== confirmPassword) {
-      this.errorMessage = "Les mots de passe ne correspondent pas";
+      this.setError("Les mots de passe ne correspondent pas");
       return;
     }
     if (password.length < 6) {
-      this.errorMessage = "Le mot de passe doit contenir au moins 6 caractères";
+      this.setError("Le mot de passe doit contenir au moins 6 caractères");
       return;
     }
     else {
@@ -89,7 +119,7 @@ export class AuthPage implements OnInit {
           
           // Check if email is verified
           if (!this.authService.isEmailVerified()) {
-            this.errorMessage = "Veuillez vérifier votre email avant de vous connecter";
+            this.setError("Veuillez vérifier votre email avant de vous connecter", true);
             await this.authService.signOut();
             return;
           }
@@ -113,10 +143,24 @@ export class AuthPage implements OnInit {
           // Switch to login mode
           this.isLogin = true;
           this.initForm();
-          this.errorMessage = "Un email de vérification vous a été envoyé. Veuillez vérifier votre email avant de vous connecter";
+          this.setError("Un email de vérification vous a été envoyé. Veuillez vérifier votre email avant de vous connecter", true);
         }
       } catch (error: any) {
-        this.errorMessage = error.message || (this.isLogin ? "Erreur de connexion" : "Erreur lors de l'inscription");
+        let errorMsg = "Une erreur s'est produite";
+        
+        if (error.code === 'auth/email-already-in-use') {
+          errorMsg = "Cette adresse email est déjà utilisée";
+        } else if (error.code === 'auth/invalid-email') {
+          errorMsg = "Adresse email invalide";
+        } else if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+          errorMsg = "Email ou mot de passe incorrect";
+        } else if (error.code === 'auth/too-many-requests') {
+          errorMsg = "Trop de tentatives de connexion. Veuillez réessayer plus tard";
+        } else if (error.message && error.message.includes(INVALID_CREDENTIALS)) {
+          errorMsg = "Email ou mot de passe incorrect";
+        }
+        
+        this.setError(errorMsg);
       }
     }
   }
