@@ -3,7 +3,7 @@ import { Topic, Topics } from '../../models/topic';
 import { Post } from '../../models/post';
 import { generateUUID } from '../../utils/generate-uuid';
 import { Observable, map, of, switchMap, firstValueFrom } from 'rxjs';
-import { Firestore, collection, collectionData, doc, docData, setDoc, updateDoc, deleteDoc, addDoc, query, where, getDoc } from '@angular/fire/firestore';
+import { Firestore, collection, collectionData, doc, docData, setDoc, updateDoc, deleteDoc, addDoc, query, where, getDoc, getDocs } from '@angular/fire/firestore';
 import { AuthService } from '../auth/auth.service';
 import { User } from 'src/app/models/user';
 
@@ -174,4 +174,70 @@ export class TopicService {
     const postDoc = doc(this.firestore, `topics/${topicId}/posts/${post.id}`);
     await deleteDoc(postDoc);
   }
+  // Add these methods to your TopicService class
+
+  async addUserToTopicSharing(topicId: string, username: string, role: 'reader' | 'editor'): Promise<void> {
+    const userId = this.authService.isConnected()?.uid;
+    if (!userId) throw new Error('User not authenticated');
+    
+    // Vérifier que le topic appartient à l'utilisateur courant
+    const topicDoc = doc(this.firestore, `topics/${topicId}`);
+    const topicSnapshot = await firstValueFrom(docData(topicDoc, { idField: 'id' }).pipe(
+      map((t: any) => t as Topic | undefined)
+    ));
+    
+    if (!topicSnapshot || topicSnapshot.userId !== userId) {
+      throw new Error('Unauthorized access to topic');
+    }
+    
+    // Rechercher l'utilisateur par username
+    const usersCollection = collection(this.firestore, 'users');
+    const userQuery = query(usersCollection, where('username', '==', username));
+    const userDocs = await getDocs(userQuery);
+    
+    if (userDocs.empty) {
+      throw new Error('User not found');
+    }
+    
+    const userData = userDocs.docs[0].data() as User;
+    const targetUserId = userDocs.docs[0].id;
+    
+    // Mettre à jour le tableau de partage
+    const sharedWith = topicSnapshot.sharedWith || [];
+    
+    const existingSharing = sharedWith.find(s => s.userId === targetUserId);
+    if (existingSharing) {
+      existingSharing.role = role;
+    } else {
+      sharedWith.push({
+        userId: targetUserId,
+        username: userData.username || username,
+        role: role
+      });
+    }
+    
+    await updateDoc(topicDoc, { sharedWith });
+  }
+
+async removeUserFromTopicSharing(topicId: string, targetUserId: string): Promise<void> {
+  const userId = this.authService.isConnected()?.uid;
+  if (!userId) throw new Error('User not authenticated');
+  
+  // Check if topic belongs to current user
+  const topicDoc = doc(this.firestore, `topics/${topicId}`);
+  const topicSnapshot = await firstValueFrom(docData(topicDoc, { idField: 'id' }).pipe(
+    map((t: any) => t as Topic | undefined)
+  ));
+  
+  if (!topicSnapshot || topicSnapshot.userId !== userId) {
+    throw new Error('Unauthorized access to topic');
+  }
+  
+  // Remove user from sharedWith array
+  const sharedWith = (topicSnapshot.sharedWith || [])
+    .filter(s => s.userId !== targetUserId);
+  
+  // Update the topic document
+  await updateDoc(topicDoc, { sharedWith });
+}
 }

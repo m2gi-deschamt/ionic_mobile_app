@@ -1,0 +1,52 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Share Topic</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss()">
+        <ion-icon name="close"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <h2>Share "{{ topic.name }}"</h2>
+  
+  <form [formGroup]="shareForm" (ngSubmit)="onSubmit()">
+    <ion-item>
+      <ion-label position="floating">Username</ion-label>
+      <ion-input formControlName="username"></ion-input>
+      <ion-note slot="error" *ngIf="shareForm.get('username')?.touched && shareForm.get('username')?.errors?.['required']">
+        Username is required
+      </ion-note>
+    </ion-item>
+
+    <ion-item>
+      <ion-label>Permission</ion-label>
+      <ion-select formControlName="role" interface="popover">
+        <ion-select-option *ngFor="let role of roles" [value]="role.value">{{ role.label }}</ion-select-option>
+      </ion-select>
+    </ion-item>
+
+    <div class="ion-margin-top">
+      <ion-button expand="block" type="submit" [disabled]="!shareForm.valid">
+        Share Topic
+      </ion-button>
+    </div>
+  </form>
+  
+  <div class="shared-users ion-margin-top" *ngIf="topic.sharedWith && topic.sharedWith.length > 0">
+    <h3>Currently shared with</h3>
+    <ion-list>
+      <ion-item *ngFor="let sharing of topic.sharedWith">
+        <ion-label>
+          <h4>{{ sharing.username }}</h4>
+          <p>{{ sharing.role | titlecase }}</p>
+        </ion-label>
+        <ion-button slot="end" fill="clear" color="danger" (click)="removeSharing(sharing)">
+          <ion-icon name="trash-outline"></ion-icon>
+        </ion-button>
+      </ion-item>
+    </ion-list>
+  </div>
+</ion-content>

@@ -9,11 +9,13 @@ import { PopoverController } from '@ionic/angular/standalone';
 import { CreatePostModal } from '../modals/create-post/create-post.component';
 import { Post } from 'src/app/models/post';
 import { addIcons } from 'ionicons';
-import { addOutline, chevronForward, ellipsisVertical } from 'ionicons/icons';
+import { addOutline, chevronForward, ellipsisVertical, shareOutline, shareSocial } from 'ionicons/icons';
 import { ItemManagementPopover } from '../popover/item-management/item-management.component';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { Topic } from 'src/app/models/topic';
+import { ShareTopicModalComponent } from 'src/app/share-topic-modal/share-topic-modal.component';
 
-addIcons({ addOutline, chevronForward, ellipsisVertical });
+addIcons({ addOutline, chevronForward, ellipsisVertical, shareOutline, shareSocial });
 
 @Component({
   selector: 'app-topic-details',
@@ -33,7 +35,6 @@ export class TopicDetailsPage {
   topic = toSignal(this.topicService.getById(this.topicId));
 
   posts = toSignal(this.topicService.getPostsByTopicId(this.topicId));
-
 
   async openModal(post?: Post): Promise<void> {
     const modal = await this.modalCtrl.create({
@@ -57,9 +58,49 @@ export class TopicDetailsPage {
       data: { action },
     } = await popover.onDidDismiss();
 
-    //console.log(action);
-
     if (action === 'remove') this.topicService.removePost(this.topicId, post);
     else if (action === 'edit') this.openModal(post);
+  }
+
+  async openShareModal() {
+    // Make sure we have a topic before proceeding
+    const currentTopic = this.topic();
+    if (!currentTopic) return;
+    
+    const modal = await this.modalCtrl.create({
+      component: ShareTopicModalComponent,
+      componentProps: {
+        topic: currentTopic
+      }
+    });
+  
+    await modal.present();
+  
+    const result = await modal.onDidDismiss();
+    if (result.data) {
+      if (result.data.action === 'remove') {
+        this.removeUserFromSharing(currentTopic, result.data.userId);
+      } else {
+        this.addUserToSharing(currentTopic, result.data.username, result.data.role);
+      }
+    }
+  }
+  
+  private async addUserToSharing(topic: Topic, username: string, role: 'reader' | 'editor') {
+    try {
+      console.log(`Adding ${username} as ${role} to topic ${topic.id}`);
+      await this.topicService.addUserToTopicSharing(topic.id, username, role);
+    } catch (error) {
+      console.error('Error adding user to sharing:', error);
+    }
+  }
+
+  private async removeUserFromSharing(topic: Topic, userId: string) {
+    try {
+      console.log(`Removing user ${userId} from topic ${topic.id}`);
+       await this.topicService.removeUserFromTopicSharing(topic.id, userId);
+    } catch (error) {
+      console.error('Error removing user from sharing:', error);
+    }
   }
 }
