@@ -1,14 +1,3 @@
-<ion-header [translucent]="true" class="height-100">
-  <ion-toolbar>
-    <ion-breadcrumbs>
-      <ion-breadcrumb routerLink="">Topics</ion-breadcrumb>
-      <ion-breadcrumb [routerLink]="'#topics/' + topic()?.id">{{
-        topic()?.name
-      }}</ion-breadcrumb>
-    </ion-breadcrumbs>
-  </ion-toolbar>
-</ion-header>
-
 <ion-content [fullscreen]="true">
   <ion-header collapse="condense">
     <ion-toolbar>
@@ -16,10 +5,16 @@
     </ion-toolbar>
   </ion-header>
 
+  <!-- Afficher le statut d'accès -->
+  <ion-chip class="ion-margin" [color]="getUserRole() === 'owner' ? 'primary' : (getUserRole() === 'editor' ? 'tertiary' : 'medium')">
+    <ion-label>{{ getUserRole() === 'owner' ? 'Owner' : (getUserRole() === 'editor' ? 'Editor' : 'Reader') }}</ion-label>
+  </ion-chip>
+
   <ion-list>
     @for(post of posts(); track post.id) {
-
     <ion-item>
+      <!-- Afficher les options d'édition uniquement pour propriétaires et éditeurs -->
+      @if(canEdit()) {
       <ion-button
         slot="start"
         fill="clear"
@@ -27,24 +22,28 @@
         (click)="presentPostManagementPopover($event, post)"
         aria-label="open post management popover"
         data-cy="open-post-management-popover"
-        ><ion-icon
-          slot="icon-only"
-          color="medium"
-          name="ellipsis-vertical"
-        ></ion-icon
-      ></ion-button>
+      >
+        <ion-icon slot="icon-only" color="medium" name="ellipsis-vertical"></ion-icon>
+      </ion-button>
+      }
       <ion-label>{{ post.name }}</ion-label>
     </ion-item>
-
     } @empty {
-    <ion-img
-      class="image"
-      src="assets/img/no_data.svg"
-      alt="No data"
-    ></ion-img>
+    <ion-img class="image" src="assets/img/no_data.svg" alt="No data"></ion-img>
     }
   </ion-list>
   
+  <!-- Montrer le bouton de partage uniquement pour les propriétaires -->
+  @if(isOwner()) {
+  <ion-fab slot="fixed" vertical="bottom" horizontal="start">
+    <ion-fab-button (click)="openShareModal()">
+      <ion-icon name="share-social"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+  }
+  
+  <!-- Montrer le bouton d'ajout de post uniquement pour propriétaires et éditeurs -->
+  @if(canEdit()) {
   <ion-fab slot="fixed" vertical="bottom" horizontal="end">
     <ion-fab-button
       data-cy="open-create-post-modal-button"
@@ -54,10 +53,5 @@
       <ion-icon name="add-outline"></ion-icon>
     </ion-fab-button>
   </ion-fab>
-
-  <ion-fab slot="fixed" vertical="bottom" horizontal="start">
-    <ion-fab-button (click)="openShareModal()">
-      <ion-icon name="share-social"></ion-icon>
-    </ion-fab-button>
-  </ion-fab>
+  }
 </ion-content>

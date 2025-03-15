@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonLabel, IonButton, 
+import {IonBadge, IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonLabel, IonButton, 
   IonBreadcrumb, IonList, IonIcon, IonNote, IonImg, IonFab, IonFabButton, IonBreadcrumbs } from '@ionic/angular/standalone';
 import { TopicService } from '../services/topic/topic.service';
 import { CommonModule } from '@angular/common';
@@ -36,31 +36,38 @@ addIcons({ addOutline, chevronForward, ellipsisVertical });
       <ion-list>
         @for(topic of topics(); track topic.id) {
         <ion-item>
-          <ion-button
-            slot="start"
-            fill="clear"
-            id="click-trigger"
-            (click)="presentTopicManagementPopover($event, topic)"
-            aria-label="open topic management popover"
-            data-cy="open-topic-management-popover"
-            ><ion-icon
-              slot="icon-only"
-              color="medium"
-              name="ellipsis-vertical"
-            ></ion-icon
-          ></ion-button>
+      @if(canEdit(topic)) {
+        <ion-button
+          slot="start"
+          fill="clear"
+          id="click-trigger"
+          (click)="presentTopicManagementPopover($event, topic)"
+          aria-label="open topic management popover"
+          data-cy="open-topic-management-popover"
+        >
+          <ion-icon slot="icon-only" color="medium" name="ellipsis-vertical"></ion-icon>
+        </ion-button>
+      }@else {
+          <!-- Espace réservé invisible pour maintenir l'alignement -->
+          <div slot="start" style="width: 30px;"></div>
+        }
 
-          <ion-label [routerLink]="['/topics/' + topic.id]">{{
-            topic.name
-          }}</ion-label>
-          <ion-note slot="end">{{ topic?.posts?.length }}</ion-note>
-          <ion-icon
-            slot="end"
-            [routerLink]="['/topics/' + topic.id]"
-            color="medium"
-            name="chevron-forward"
-          ></ion-icon>
-        </ion-item>
+      <ion-label [routerLink]="['/topics/' + topic.id]">
+        {{ topic.name }}
+        <p>
+          <ion-badge color="{{ getUserRole(topic) === 'owner' ? 'primary' : (getUserRole(topic) === 'editor' ? 'tertiary' : 'medium') }}">
+            {{ getUserRole(topic) === 'owner' ? 'Owner' : (getUserRole(topic) === 'editor' ? 'Editor' : 'Reader') }}
+          </ion-badge>
+        </p>
+      </ion-label>
+      <ion-note slot="end">{{ topic?.posts?.length }}</ion-note>
+      <ion-icon
+        slot="end"
+        [routerLink]="['/topics/' + topic.id]"
+        color="medium"
+        name="chevron-forward"
+      ></ion-icon>
+    </ion-item>
         } @empty {
         <ion-img class="image" src="assets/img/no_data.svg" alt=""></ion-img>
         }
@@ -84,7 +91,7 @@ addIcons({ addOutline, chevronForward, ellipsisVertical });
       }
     `,
   ],
-  imports: [IonHeader, IonToolbar, IonTitle, IonContent, IonItem, 
+  imports: [IonBadge, IonHeader, IonToolbar, IonTitle, IonContent, IonItem, 
     IonLabel ,IonButton, CommonModule, RouterLink,IonBreadcrumbs,
     IonBreadcrumb, IonList, IonIcon, IonNote, IonImg, IonFab, IonFabButton],
 })
@@ -119,5 +126,12 @@ export class TopicsPage {
 
     if (action === 'remove') this.topicService.removeTopic(topic);
     else if (action === 'edit') this.openModal(topic);
+  }
+  getUserRole(topic: Topic): 'owner' | 'editor' | 'reader' | undefined {
+    return this.topicService.getUserRole(topic);
+  }
+  canEdit(topic: Topic): boolean {
+    const role = this.getUserRole(topic);
+    return role === 'owner' || role === 'editor';
   }
 }

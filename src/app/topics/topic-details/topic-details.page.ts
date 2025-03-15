@@ -103,4 +103,24 @@ export class TopicDetailsPage {
       console.error('Error removing user from sharing:', error);
     }
   }
+
+  canEdit(): boolean {
+    const currentTopic = this.topic();
+    if (!currentTopic) return false;
+    return this.topicService.hasEditPermission(currentTopic);
+  }
+  
+  // Récupérer le rôle de l'utilisateur
+  getUserRole(): 'owner' | 'editor' | 'reader' | undefined {
+    const currentTopic = this.topic();
+    if (!currentTopic) return undefined;
+    return this.topicService.getUserRole(currentTopic);
+  }
+  
+  // Vérifier si l'utilisateur est propriétaire
+  isOwner(): boolean {
+    const currentTopic = this.topic();
+    if (!currentTopic) return false;
+    return this.topicService.isOwner(currentTopic);
+  }
 }

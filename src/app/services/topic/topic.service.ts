@@ -2,8 +2,8 @@ import { inject, Injectable } from '@angular/core';
 import { Topic, Topics } from '../../models/topic';
 import { Post } from '../../models/post';
 import { generateUUID } from '../../utils/generate-uuid';
-import { Observable, map, of, switchMap, firstValueFrom } from 'rxjs';
-import { Firestore, collection, collectionData, doc, docData, setDoc, updateDoc, deleteDoc, addDoc, query, where, getDoc, getDocs } from '@angular/fire/firestore';
+import { Observable, map, of, switchMap, firstValueFrom, combineLatest } from 'rxjs';
+import { Firestore, collection, collectionData, doc, docData, setDoc, updateDoc, deleteDoc, addDoc, query, where, getDoc, getDocs, writeBatch } from '@angular/fire/firestore';
 import { AuthService } from '../auth/auth.service';
 import { User } from 'src/app/models/user';
 
@@ -28,16 +28,46 @@ export class TopicService {
       switchMap(userId => {
         if (!userId) return of([]);
         
+        // Query pour récupérer les topics dont l'utilisateur est propriétaire
         const userTopicsQuery = query(
           this.topicsCollection, 
           where('userId', '==', userId)
         );
         
-        return collectionData(userTopicsQuery, { idField: 'id' }) as Observable<Topic[]>;
+        // Faire deux requêtes distinctes pour les rôles reader et editor
+        // Et filtrer en mémoire pour vérifier que l'userId correspond
+        const sharedTopics$ = collectionData(this.topicsCollection).pipe(
+          map((topics: any[]) => topics.filter(topic => 
+            topic.sharedWith?.some((share: any) => 
+              share.userId === userId && 
+              (share.role === 'reader' || share.role === 'editor')
+            )
+          ))
+        ) as Observable<Topic[]>;
+        
+        // Combiner les deux résultats
+        const ownedTopics$ = collectionData(userTopicsQuery, { idField: 'id' }) as Observable<Topic[]>;
+        
+        return combineLatest([ownedTopics$, sharedTopics$]).pipe(
+          map(([ownedTopics, sharedTopics]) => {
+            // Dédupliquer au cas où
+            const allTopics = [...ownedTopics, ...sharedTopics];
+            const uniqueTopics: Topic[] = [];
+            const seenIds = new Set<string>();
+            
+            allTopics.forEach(topic => {
+              if (!seenIds.has(topic.id)) {
+                seenIds.add(topic.id);
+                uniqueTopics.push(topic);
+              }
+            });
+            
+            return uniqueTopics;
+          })
+        );
       })
     );
   }
-
   getById(topicId: string): Observable<Topic | undefined> {
     const topicDoc = doc(this.firestore, `topics/${topicId}`);
     return this.getCurrentUserId().pipe(
@@ -46,7 +76,16 @@ export class TopicService {
         
         return docData(topicDoc, { idField: 'id' }).pipe(
           map((topic: any) => {
-            return topic && topic.userId === userId ? topic : undefined;
+            if (!topic) return undefined;
+            
+            // Si l'utilisateur est propriétaire, autoriser l'accès
+            if (topic.userId === userId) return topic;
+            
+            // Si le topic est partagé avec l'utilisateur, autoriser l'accès
+            const sharedWith = topic.sharedWith || [];
+            const userSharing = sharedWith.find((s: { userId: string; }) => s.userId === userId);
+            
+            return userSharing ? topic : undefined;
           })
         );
       })
@@ -63,6 +102,8 @@ export class TopicService {
       })
     );
   }
+
+  
 
   async addTopic(topic: Omit<Topic, 'id' | 'posts' | 'userId' | 'ownerUsername'>): Promise<void> {
     const user = this.authService.isConnected();
@@ -94,8 +135,14 @@ export class TopicService {
       map((t: any) => t as Topic | undefined)
     ));
     
-    if (!topicSnapshot || topicSnapshot.userId !== userId) {
-      throw new Error('Unauthorized access to topic');
+    if (!topicSnapshot) {
+      throw new Error('Topic not found');
+    }
+    
+    // Vérification des permissions d'édition
+    const userRole = this.getUserRole(topicSnapshot);
+    if (userRole !== 'owner' && userRole !== 'editor') {
+      throw new Error('Insufficient permissions to edit topic');
     }
     
     await updateDoc(topicDoc, { name: topic.name });
@@ -105,11 +152,35 @@ export class TopicService {
     const userId = this.authService.isConnected()?.uid;
     if (!userId) throw new Error('User not authenticated');
     
-    if (topic.userId !== userId) {
-      throw new Error('Unauthorized access to topic');
+    const topicDoc = doc(this.firestore, `topics/${topic.id}`);
+    const topicSnapshot = await firstValueFrom(docData(topicDoc, { idField: 'id' }).pipe(
+      map((t: any) => t as Topic | undefined)
+    ));
+    
+    if (!topicSnapshot) {
+      throw new Error('Topic not found');
     }
     
-    const topicDoc = doc(this.firestore, `topics/${topic.id}`);
+    // Vérification des permissions de suppression
+    const userRole = this.getUserRole(topicSnapshot);
+    if (userRole !== 'owner' && userRole !== 'editor') {
+      throw new Error('Insufficient permissions to delete topic');
+    }
+    
+    // Récupérer et supprimer tous les posts associés
+    const postsCollection = collection(this.firestore, `topics/${topic.id}/posts`);
+    const postsSnapshot = await getDocs(postsCollection);
+    
+    // Supprimer d'abord tous les posts
+    if (!postsSnapshot.empty) {
+      const batch = writeBatch(this.firestore);
+      postsSnapshot.forEach(doc => {
+        batch.delete(doc.ref);
+      });
+      await batch.commit();
+    }
+    
+    // Puis supprimer le topic
     await deleteDoc(topicDoc);
   }
 
@@ -122,8 +193,14 @@ export class TopicService {
       map((t: any) => t as Topic | undefined)
     ));
     
-    if (!topicSnapshot || topicSnapshot.userId !== userId) {
-      throw new Error('Unauthorized access to topic');
+    if (!topicSnapshot) {
+      throw new Error('Topic not found');
+    }
+    
+    // Vérification des permissions d'édition
+    const userRole = this.getUserRole(topicSnapshot);
+    if (userRole !== 'owner' && userRole !== 'editor') {
+      throw new Error('Insufficient permissions to add posts');
     }
     
     const postsCollection = collection(this.firestore, `topics/${topicId}/posts`);
@@ -136,7 +213,7 @@ export class TopicService {
     
     await setDoc(doc(postsCollection, id), newPost);
   }
- 
+  
   async editPost(topicId: string, post: Post): Promise<void> {
     const userId = this.authService.isConnected()?.uid;
     if (!userId) throw new Error('User not authenticated');
@@ -146,8 +223,14 @@ export class TopicService {
       map((t: any) => t as Topic | undefined)
     ));
     
-    if (!topicSnapshot || topicSnapshot.userId !== userId) {
-      throw new Error('Unauthorized access to topic');
+    if (!topicSnapshot) {
+      throw new Error('Topic not found');
+    }
+    
+    // Vérification des permissions d'édition
+    const userRole = this.getUserRole(topicSnapshot);
+    if (userRole !== 'owner' && userRole !== 'editor') {
+      throw new Error('Insufficient permissions to edit posts');
     }
     
     const postDoc = doc(this.firestore, `topics/${topicId}/posts/${post.id}`);
@@ -157,7 +240,7 @@ export class TopicService {
     };
     await updateDoc(postDoc, postData);
   }
-
+  
   async removePost(topicId: string, post: Post): Promise<void> {
     const userId = this.authService.isConnected()?.uid;
     if (!userId) throw new Error('User not authenticated');
@@ -167,8 +250,14 @@ export class TopicService {
       map((t: any) => t as Topic | undefined)
     ));
     
-    if (!topicSnapshot || topicSnapshot.userId !== userId) {
-      throw new Error('Unauthorized access to topic');
+    if (!topicSnapshot) {
+      throw new Error('Topic not found');
+    }
+    
+    // Vérification des permissions d'édition
+    const userRole = this.getUserRole(topicSnapshot);
+    if (userRole !== 'owner' && userRole !== 'editor') {
+      throw new Error('Insufficient permissions to remove posts');
     }
     
     const postDoc = doc(this.firestore, `topics/${topicId}/posts/${post.id}`);
@@ -186,8 +275,13 @@ export class TopicService {
       map((t: any) => t as Topic | undefined)
     ));
     
-    if (!topicSnapshot || topicSnapshot.userId !== userId) {
-      throw new Error('Unauthorized access to topic');
+    if (!topicSnapshot) {
+      throw new Error('Topic not found');
+    }
+    
+    // Seul le propriétaire peut partager un topic
+    if (topicSnapshot.userId !== userId) {
+      throw new Error('Only the topic owner can share it');
     }
     
     // Rechercher l'utilisateur par username
@@ -239,5 +333,45 @@ async removeUserFromTopicSharing(topicId: string, targetUserId: string): Promise
   
   // Update the topic document
   await updateDoc(topicDoc, { sharedWith });
+}
+
+hasEditPermission(topic: Topic): boolean {
+  const userId = this.authService.isConnected()?.uid;
+  if (!userId) return false;
+  
+  // Propriétaire du topic
+  if (topic.userId === userId) return true;
+  
+  // Vérification des droits partagés
+  const sharedWith = topic.sharedWith || [];
+  const userSharing = sharedWith.find(s => s.userId === userId);
+  
+  // Seul un éditeur peut modifier le topic
+  return userSharing?.role === 'editor';
+}
+
+/**
+ * Vérifie si l'utilisateur est propriétaire du topic
+ */
+isOwner(topic: Topic): boolean {
+  const userId = this.authService.isConnected()?.uid;
+  return userId ? topic.userId === userId : false;
+}
+
+/**
+ * Récupère le rôle de l'utilisateur pour ce topic
+ */
+getUserRole(topic: Topic): 'owner' | 'editor' | 'reader' | undefined {
+  const userId = this.authService.isConnected()?.uid;
+  if (!userId) return undefined;
+  
+  // Propriétaire
+  if (topic.userId === userId) return 'owner';
+  
+  // Rôle partagé
+  const sharedWith = topic.sharedWith || [];
+  const userSharing = sharedWith.find(s => s.userId === userId);
+  
+  return userSharing?.role;
 }
 }
