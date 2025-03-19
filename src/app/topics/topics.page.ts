@@ -1,6 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import {IonBadge, IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonLabel, IonButton, 
-  IonBreadcrumb, IonList, IonIcon, IonNote, IonImg, IonFab, IonFabButton, IonBreadcrumbs } from '@ionic/angular/standalone';
+  IonBreadcrumb, IonList, IonIcon, IonImg, IonFab, IonFabButton, IonBreadcrumbs } from '@ionic/angular/standalone';
 import { TopicService } from '../services/topic/topic.service';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -60,7 +60,6 @@ addIcons({ addOutline, chevronForward, ellipsisVertical });
           </ion-badge>
         </p>
       </ion-label>
-      <ion-note slot="end">{{ topic?.posts?.length }}</ion-note>
       <ion-icon
         slot="end"
         [routerLink]="['/topics/' + topic.id]"
@@ -93,7 +92,7 @@ addIcons({ addOutline, chevronForward, ellipsisVertical });
   ],
   imports: [IonBadge, IonHeader, IonToolbar, IonTitle, IonContent, IonItem, 
     IonLabel ,IonButton, CommonModule, RouterLink,IonBreadcrumbs,
-    IonBreadcrumb, IonList, IonIcon, IonNote, IonImg, IonFab, IonFabButton],
+    IonBreadcrumb, IonList, IonIcon, IonImg, IonFab, IonFabButton],
 })
 export class TopicsPage {
   private readonly topicService = inject(TopicService);

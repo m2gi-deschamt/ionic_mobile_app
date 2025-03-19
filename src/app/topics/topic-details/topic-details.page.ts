@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { TopicService } from 'src/app/services/topic/topic.service';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ModalController } from '@ionic/angular/standalone';
 import { PopoverController } from '@ionic/angular/standalone';
 import { CreatePostModal } from '../modals/create-post/create-post.component';
@@ -22,13 +22,15 @@ addIcons({ addOutline, chevronForward, ellipsisVertical, shareOutline, shareSoci
   templateUrl: './topic-details.page.html',
   styleUrls: ['./topic-details.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule, RouterLink],
+  imports: [IonicModule, CommonModule, FormsModule],
 })
 export class TopicDetailsPage {
   private readonly topicService = inject(TopicService);
   private readonly route = inject(ActivatedRoute);
   private readonly modalCtrl = inject(ModalController);
   private readonly popoverCtrl = inject(PopoverController);
+  private readonly router = inject(Router);
+
 
   topicId = this.route.snapshot.params['id'];
 
@@ -122,5 +124,8 @@ export class TopicDetailsPage {
     const currentTopic = this.topic();
     if (!currentTopic) return false;
     return this.topicService.isOwner(currentTopic);
+  }
+  navigateToTopics() {
+    this.router.navigate(['/topics']);
   }
 }

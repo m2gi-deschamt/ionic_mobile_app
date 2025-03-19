@@ -1,5 +1,11 @@
 <ion-header>
   <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="dismiss()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+        Fermer
+      </ion-button>
+    </ion-buttons>
     <ion-title>Share Topic</ion-title>
     <ion-buttons slot="end">
       <ion-button (click)="dismiss()">
@@ -11,6 +17,12 @@
 
 <ion-content class="ion-padding">
   <h2>Share "{{ topic.name }}"</h2>
+  
+  <!-- Message d'erreur -->
+  <ion-item *ngIf="errorMessage" color="danger" lines="none">
+    <ion-icon name="alert-circle-outline" slot="start"></ion-icon>
+    <ion-label>{{ errorMessage }}</ion-label>
+  </ion-item>
   
   <form [formGroup]="shareForm" (ngSubmit)="onSubmit()">
     <ion-item>
@@ -29,7 +41,8 @@
     </ion-item>
 
     <div class="ion-margin-top">
-      <ion-button expand="block" type="submit" [disabled]="!shareForm.valid">
+      <ion-button expand="block" type="submit" [disabled]="!shareForm.valid || isSubmitting">
+        <ion-spinner *ngIf="isSubmitting" name="dots" slot="start"></ion-spinner>
         Share Topic
       </ion-button>
     </div>

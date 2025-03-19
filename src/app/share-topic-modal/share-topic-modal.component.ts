@@ -1,9 +1,10 @@
 import { Component, Input, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
-import {  ModalController } from '@ionic/angular/standalone';
+import { ModalController } from '@ionic/angular/standalone';
 import { Topic, TopicSharing } from '../models/topic';
 import { CommonModule } from '@angular/common';
-import { IonicModule} from '@ionic/angular'
+import { IonicModule } from '@ionic/angular';
+import { TopicService } from '../services/topic/topic.service';
 
 @Component({
   selector: 'app-share-topic-modal',
@@ -15,6 +16,9 @@ import { IonicModule} from '@ionic/angular'
 export class ShareTopicModalComponent implements OnInit {
   @Input() topic!: Topic;
   shareForm!: FormGroup;
+  errorMessage: string | null = null;
+  isSubmitting = false;
+
   roles = [
     { value: 'reader', label: 'Reader' },
     { value: 'editor', label: 'Editor' }
@@ -22,6 +26,7 @@ export class ShareTopicModalComponent implements OnInit {
 
   private modalController = inject(ModalController);
   private formBuilder = inject(FormBuilder);
+  private topicService = inject(TopicService);
 
   ngOnInit() {
     this.shareForm = this.formBuilder.group({
@@ -37,12 +42,33 @@ export class ShareTopicModalComponent implements OnInit {
     this.modalController.dismiss();
   }
 
-  onSubmit() {
+  async onSubmit() {
     if (this.shareForm.valid) {
-      this.modalController.dismiss({
-        username: this.shareForm.value.username,
-        role: this.shareForm.value.role
-      });
+      this.errorMessage = null;
+      this.isSubmitting = true;
+      
+      try {
+        await this.topicService.addUserToTopicSharing(
+          this.topic.id,
+          this.shareForm.value.username,
+          this.shareForm.value.role
+        );
+        
+        // En cas de succès, fermer la modal avec les infos de partage
+        this.modalController.dismiss({
+          username: this.shareForm.value.username,
+          role: this.shareForm.value.role
+        });
+      } catch (error) {
+        // Afficher l'erreur dans la modal
+        if (error instanceof Error) {
+          this.errorMessage = error.message;
+        } else {
+          this.errorMessage = "Une erreur s'est produite";
+        }
+      } finally {
+        this.isSubmitting = false;
+      }
     }
   }
   
