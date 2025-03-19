@@ -1,14 +1,19 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/topics"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ topic()?.name }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
 <ion-content [fullscreen]="true">
+  <!-- Keep the condensed header for iOS aesthetics -->
   <ion-header collapse="condense">
     <ion-toolbar>
       <ion-title size="large">{{ topic()?.name }}</ion-title>
     </ion-toolbar>
   </ion-header>
-
-  <!-- Afficher le statut d'accès -->
-  <ion-chip class="ion-margin" [color]="getUserRole() === 'owner' ? 'primary' : (getUserRole() === 'editor' ? 'tertiary' : 'medium')">
-    <ion-label>{{ getUserRole() === 'owner' ? 'Owner' : (getUserRole() === 'editor' ? 'Editor' : 'Reader') }}</ion-label>
-  </ion-chip>
 
   <ion-list>
     @for(post of posts(); track post.id) {
