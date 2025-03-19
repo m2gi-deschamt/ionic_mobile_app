@@ -8,7 +8,6 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <!-- Keep the condensed header for iOS aesthetics -->
   <ion-header collapse="condense">
     <ion-toolbar>
       <ion-title size="large">{{ topic()?.name }}</ion-title>
@@ -18,7 +17,6 @@
   <ion-list>
     @for(post of posts(); track post.id) {
     <ion-item>
-      <!-- Afficher les options d'édition uniquement pour propriétaires et éditeurs -->
       @if(canEdit()) {
       <ion-button
         slot="start"
@@ -38,7 +36,6 @@
     }
   </ion-list>
   
-  <!-- Montrer le bouton de partage uniquement pour les propriétaires -->
   @if(isOwner()) {
   <ion-fab slot="fixed" vertical="bottom" horizontal="start">
     <ion-fab-button (click)="openShareModal()">
