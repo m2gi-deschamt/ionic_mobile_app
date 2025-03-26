@@ -3,7 +3,8 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } 
 import { ModalController } from '@ionic/angular/standalone';
 import { Topic, TopicSharing } from '../models/topic';
 import { CommonModule } from '@angular/common';
-import { IonicModule } from '@ionic/angular';
+import { IonInput, IonSelectOption, IonSelect, IonSpinner, IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonLabel, IonButton, 
+  IonNote, IonList, IonIcon, IonButtons } from '@ionic/angular/standalone';
 import { TopicService } from '../services/topic/topic.service';
 
 @Component({
@@ -11,7 +12,9 @@ import { TopicService } from '../services/topic/topic.service';
   templateUrl: './share-topic-modal.component.html',
   styleUrls: ['./share-topic-modal.component.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, ReactiveFormsModule, FormsModule]
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, IonHeader, IonToolbar, IonTitle, IonContent, IonItem, 
+    IonLabel ,IonButton, IonInput,
+    IonNote, IonList, IonIcon, IonButtons, IonSpinner, IonSelectOption, IonSelect]
 })
 export class ShareTopicModalComponent implements OnInit {
   @Input() topic!: Topic;
@@ -54,13 +57,11 @@ export class ShareTopicModalComponent implements OnInit {
           this.shareForm.value.role
         );
         
-        // En cas de succès, fermer la modal avec les infos de partage
         this.modalController.dismiss({
           username: this.shareForm.value.username,
           role: this.shareForm.value.role
         });
       } catch (error) {
-        // Afficher l'erreur dans la modal
         if (error instanceof Error) {
           this.errorMessage = error.message;
         } else {
