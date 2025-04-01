@@ -31,37 +31,63 @@ export class TopicDetailsPage {
   private readonly popoverCtrl = inject(PopoverController);
   private readonly router = inject(Router);
 
-
   topicId = this.route.snapshot.params['id'];
 
   topic = toSignal(this.topicService.getById(this.topicId));
 
   posts = toSignal(this.topicService.getPostsByTopicId(this.topicId));
 
-  async openModal(post?: Post): Promise<void> {
+
+
+
+  fullscreenImage: string | null = null;
+
+  async openModal(post?: Post, viewOnly: boolean = false): Promise<void> {
+    // Get user role and determine if they should be in view-only mode
+    const userRole = this.getUserRole();
+    
+    // Force viewOnly to true if the user is a reader or has no role
+    const enforceViewOnly = viewOnly || userRole === 'reader' || !userRole;
+    
     const modal = await this.modalCtrl.create({
       component: CreatePostModal,
-      componentProps: { topicId: this.topicId, post },
+      componentProps: { 
+        topicId: this.topicId, 
+        post, 
+        viewOnly: enforceViewOnly 
+      },
     });
     modal.present();
-
+  
     await modal.onDidDismiss();
   }
 
   async presentPostManagementPopover(event: Event, post: Post) {
+    const currentUserRole = this.getUserRole();
+
     const popover = await this.popoverCtrl.create({
       component: ItemManagementPopover,
+      componentProps: {
+        userRole: currentUserRole
+      },
       event,
     });
 
     await popover.present();
 
-    const {
-      data: { action },
-    } = await popover.onDidDismiss();
+    const result = await popover.onDidDismiss();
+    
+    if (!result.data) return;
+    
+    const { action } = result.data;
 
-    if (action === 'remove') this.topicService.removePost(this.topicId, post);
-    else if (action === 'edit') this.openModal(post);
+    if (action === 'remove') {
+      this.topicService.removePost(this.topicId, post);
+    } else if (action === 'edit') {
+      this.openModal(post);
+    } else if (action === 'view') {
+      this.openModal(post, true); 
+    }
   }
 
   async openShareModal() {
@@ -127,5 +153,14 @@ export class TopicDetailsPage {
   }
   navigateToTopics() {
     this.router.navigate(['/topics']);
+  }
+
+  showFullscreenImage(imageUrl: string, event: Event): void {
+    event.stopPropagation();
+    this.fullscreenImage = imageUrl;
+  }
+
+  closeFullscreenImage(): void {
+    this.fullscreenImage = null;
   }
 }

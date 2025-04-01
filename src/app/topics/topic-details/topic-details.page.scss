@@ -2,3 +2,34 @@
     width: 50%;
     margin: auto;
   }
+
+.post-image {
+  width: 60px;
+  height: 60px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.image-container {
+  display: flex;
+  align-items: center;
+}
+
+/* Ajouter cette classe pour l'affichage plein écran */
+.fullscreen-image {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.9);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  
+  ion-img {
+    max-width: 95%;
+    max-height: 95%;
+  }
+}

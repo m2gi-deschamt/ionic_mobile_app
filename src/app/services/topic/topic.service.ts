@@ -204,14 +204,13 @@ export class TopicService {
     }
     
     const postsCollection = collection(this.firestore, `topics/${topicId}/posts`);
-    const id = generateUUID();
-    const newPost: Post = { 
-      id, 
-      name: post.name, 
-      description: post.description 
+    const _post: Post = {
+      ...post,
+      id: generateUUID(),
+      photoUrl: post.photoUrl || null
     };
     
-    await setDoc(doc(postsCollection, id), newPost);
+    await setDoc(doc(postsCollection, _post.id), _post);
   }
   
   async editPost(topicId: string, post: Post): Promise<void> {
@@ -234,11 +233,11 @@ export class TopicService {
     }
     
     const postDoc = doc(this.firestore, `topics/${topicId}/posts/${post.id}`);
-    const postData = {
+    await updateDoc(postDoc, { 
       name: post.name,
-      description: post.description || ''
-    };
-    await updateDoc(postDoc, postData);
+      description: post.description || null,
+      photoUrl: post.photoUrl || null
+    });
   }
   
   async removePost(topicId: string, post: Post): Promise<void> {
@@ -293,7 +292,6 @@ export class TopicService {
       throw new Error('User not found');
     }
     
-    const userData = userDocs.docs[0].data() as User;
     const targetUserId = userDocs.docs[0].id;
     
     // Mettre à jour le tableau de partage
@@ -305,7 +303,6 @@ export class TopicService {
     } else {
       sharedWith.push({
         userId: targetUserId,
-        username: userData.username || username,
         role: role
       });
     }

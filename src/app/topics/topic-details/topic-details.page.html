@@ -17,7 +17,7 @@
   <ion-list>
     @for(post of posts(); track post.id) {
     <ion-item>
-      @if(canEdit()) {
+      
       <ion-button
         slot="start"
         fill="clear"
@@ -28,7 +28,7 @@
       >
         <ion-icon slot="icon-only" color="medium" name="ellipsis-vertical"></ion-icon>
       </ion-button>
-      }
+      
       <ion-label>{{ post.name }}</ion-label>
     </ion-item>
     } @empty {

@@ -1,43 +1,47 @@
 <form [formGroup]="postForm" (ngSubmit)="onSubmit()">
-    <ion-header>
-      <ion-toolbar>
-        <ion-buttons slot="start">
-          <ion-button (click)="cancel()" color="medium">Cancel</ion-button>
-        </ion-buttons>
-        <ion-buttons slot="end">
-          <ion-button
-            type="submit"
-            [disabled]="this.postForm.invalid"
-            [strong]="true"
-            >Confirm</ion-button
-          >
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-header>
-    <ion-content class="ion-padding content" [fullscreen]="true">
-      <ion-input
-        formControlName="name"
-        fill="solid"
-        label="Enter post name"
-        labelPlacement="floating"
-        placeholder="Post name"
-        [helperText]="
-          'Enter a name with at least ' + NAME_MIN_LENGTH + ' characters.'
-        "
-        [errorText]="nameErrorText()"
-      ></ion-input>
-      <ion-input
-        formControlName="description"
-        fill="solid"
-        label="Enter post description"
-        labelPlacement="floating"
-        placeholder="Post description"
-        [helperText]="
-          'Enter a description with a maximum of ' +
-          DESCRIPTION_MAX_LENGTH +
-          ' characters.'
-        "
-        [errorText]="descriptionErrorText"
-      ></ion-input>
-    </ion-content>
-  </form>
+  <ion-header>
+    <ion-toolbar>
+      <ion-buttons slot="start">
+        <ion-button (click)="cancel()">Cancel</ion-button>
+      </ion-buttons>
+      <ion-title>{{ viewOnly ? 'View Post' : (post ? 'Edit Post' : 'Create Post') }}</ion-title>
+      <ion-buttons slot="end" *ngIf="!viewOnly">
+        <ion-button (click)="onSubmit()" [disabled]="postForm.invalid">
+          Confirm
+        </ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-header>
+  <ion-content class="ion-padding" [fullscreen]="true">
+    <ion-input
+      label="Post name"
+      labelPlacement="floating"
+      errorText="{{ nameErrorText() }}"
+      formControlName="name"
+      required="true"
+      [readonly]="viewOnly"
+    ></ion-input>
+
+    <ion-input
+      label="Post description"
+      labelPlacement="floating"
+      [errorText]="descriptionErrorText"
+      formControlName="description"
+      [readonly]="viewOnly"
+    ></ion-input>
+    
+    <!-- Image preview -->
+    <div class="photo-container" *ngIf="capturedPhoto">
+      <ion-img [src]="capturedPhoto"></ion-img>
+    </div>
+    
+    <!-- Camera button - only shown if not in view-only mode -->
+    <ion-button 
+      expand="block" 
+      (click)="takePicture()" 
+      class="ion-margin-top"
+      *ngIf="!viewOnly">
+      {{ capturedPhoto ? 'Change Photo' : 'Take Photo' }}
+    </ion-button>
+  </ion-content>
+</form>

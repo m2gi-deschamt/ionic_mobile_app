@@ -1,0 +1,63 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Basic auth check functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(resourceData) {
+      return isAuthenticated() && resourceData.userId == request.auth.uid;
+    }
+    
+    // Check if user has editor role in the sharedWith array
+    function isEditor(resourceData) {
+      return isAuthenticated() && 
+        resourceData.sharedWith != null && 
+        resourceData.sharedWith.hasAny([{
+          userId: request.auth.uid,
+          role: "editor"
+        }]);
+    }
+    
+    // Check if user has any access to the topic (owner, editor, or reader)
+    function hasAccess(resourceData) {
+      return isOwner(resourceData) || 
+        (resourceData.sharedWith != null && 
+          resourceData.sharedWith.hasAny([{
+            userId: request.auth.uid
+          }]));
+    }
+
+    // Règles pour les utilisateurs
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if request.auth.uid == userId;
+    }
+    
+    // Règles pour les topics
+    match /topics/{topicId} {
+      allow read: if isAuthenticated() && hasAccess(resource.data);
+      allow create: if isAuthenticated();
+      // Only owner can delete topics
+      allow delete: if isOwner(resource.data);
+      // Owner or editor can update topics
+      allow update: if isOwner(resource.data) || isEditor(resource.data);
+      
+      // Règles pour les posts
+      match /posts/{postId} {
+        allow read: if isAuthenticated() && hasAccess(get(/databases/$(database)/documents/topics/$(topicId)).data);
+        
+        // Owner or editor of parent topic can create, update, delete posts
+        allow create: if isAuthenticated() && 
+          (isOwner(get(/databases/$(database)/documents/topics/$(topicId)).data) || 
+           isEditor(get(/databases/$(database)/documents/topics/$(topicId)).data));
+        
+        allow update, delete: if isAuthenticated() && 
+          (isOwner(get(/databases/$(database)/documents/topics/$(topicId)).data) || 
+           isEditor(get(/databases/$(database)/documents/topics/$(topicId)).data));
+      }
+    }
+  }
+}

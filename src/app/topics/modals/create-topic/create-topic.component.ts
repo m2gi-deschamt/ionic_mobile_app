@@ -72,6 +72,8 @@ export class CreateTopicModal implements OnInit {
     return this.topicForm.get('name');
   }
 
+  
+
   cancel(): void {
     this.modalCtrl.dismiss();
   }

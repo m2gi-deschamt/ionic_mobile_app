@@ -53,10 +53,10 @@
     <ion-list>
       <ion-item *ngFor="let sharing of topic.sharedWith">
         <ion-label>
-          <h4>{{ sharing.username }}</h4>
+          <h4>{{ getUsernameForSharing(sharing) }}</h4>
           <p>{{ sharing.role | titlecase }}</p>
         </ion-label>
-        <ion-button slot="end" fill="clear" color="danger" (click)="removeSharing(sharing)">
+        <ion-button class="delete-btn" slot="end" fill="clear" color="danger" (click)="removeSharing(sharing)">
           <ion-icon name="trash-outline"></ion-icon>
         </ion-button>
       </ion-item>

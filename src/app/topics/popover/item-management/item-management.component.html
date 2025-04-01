@@ -1,0 +1,20 @@
+<ion-list>
+  <!-- Option d'édition visible uniquement pour les propriétaires et éditeurs -->
+  <ion-item button *ngIf="canEdit()" (click)="edit()">
+    <ion-icon name="pencil" slot="start"></ion-icon>
+    <ion-label>Modifier</ion-label>
+  </ion-item>
+  
+  <!-- Option de visualisation visible uniquement pour les lecteurs -->
+  <ion-item button *ngIf="isReader()" (click)="viewDetails()">
+    <ion-icon name="eye-outline" slot="start"></ion-icon>
+    <ion-label>Voir détails</ion-label>
+  </ion-item>
+  
+  <!-- Option de suppression visible uniquement pour les propriétaires -->
+  <ion-item button *ngIf="canRemove()" (click)="remove()" class="ion-text-danger">
+    <ion-icon name="trash" slot="start" color="danger"></ion-icon>
+    <ion-label color="danger">Supprimer</ion-label>
+  </ion-item>
+  
+</ion-list>

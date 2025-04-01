@@ -112,19 +112,32 @@ export class TopicsPage {
   }
 
   async presentTopicManagementPopover(event: Event, topic: Topic) {
+    const currentUserRole = this.getUserRole(topic);
+
     const popover = await this.popoverCtrl.create({
       component: ItemManagementPopover,
       event,
+      componentProps: {
+        topic: topic,
+        userRole: currentUserRole
+      }
     });
-
+  
     await popover.present();
-
-    const {
-      data: { action },
-    } = await popover.onDidDismiss();
-
-    if (action === 'remove') this.topicService.removeTopic(topic);
-    else if (action === 'edit') this.openModal(topic);
+  
+    const { data } = await popover.onDidDismiss();
+    
+    if (!data) return;
+    
+    switch (data.action) {
+      case 'remove':
+        this.topicService.removeTopic(topic);
+        break;
+      case 'edit':
+      case 'view':
+        this.openModal(topic);
+        break;
+    }
   }
   getUserRole(topic: Topic): 'owner' | 'editor' | 'reader' | undefined {
     return this.topicService.getUserRole(topic);

@@ -6,6 +6,10 @@ import { CommonModule } from '@angular/common';
 import { IonInput, IonSelectOption, IonSelect, IonSpinner, IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonLabel, IonButton, 
   IonNote, IonList, IonIcon, IonButtons } from '@ionic/angular/standalone';
 import { TopicService } from '../services/topic/topic.service';
+import { UserService } from '../services/user/user.service';
+import { User } from '../models/user';
+import { addIcons } from 'ionicons';
+import { trashOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-share-topic-modal',
@@ -13,15 +17,16 @@ import { TopicService } from '../services/topic/topic.service';
   styleUrls: ['./share-topic-modal.component.scss'],
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, FormsModule, IonHeader, IonToolbar, IonTitle, IonContent, IonItem, 
-    IonLabel ,IonButton, IonInput,
-    IonNote, IonList, IonIcon, IonButtons, IonSpinner, IonSelectOption, IonSelect]
+    IonLabel ,IonButton, IonInput, IonIcon,
+    IonNote, IonList, IonButtons, IonSpinner, IonSelectOption, IonSelect]
 })
 export class ShareTopicModalComponent implements OnInit {
   @Input() topic!: Topic;
   shareForm!: FormGroup;
   errorMessage: string | null = null;
   isSubmitting = false;
-
+  usernames: { [userId: string]: string } = {}; 
+  
   roles = [
     { value: 'reader', label: 'Reader' },
     { value: 'editor', label: 'Editor' }
@@ -30,15 +35,46 @@ export class ShareTopicModalComponent implements OnInit {
   private modalController = inject(ModalController);
   private formBuilder = inject(FormBuilder);
   private topicService = inject(TopicService);
+  private userService = inject(UserService);
 
-  ngOnInit() {
+  constructor() {
+    addIcons({
+      'trash-outline': trashOutline
+    });
+  }
+
+  async ngOnInit() {
     this.shareForm = this.formBuilder.group({
       username: ['', [Validators.required]],
       role: ['reader', Validators.required]
     });
+    
     if (!this.topic.sharedWith) {
       this.topic.sharedWith = [];
     }
+    
+    // Fetch usernames for all shared users
+    await this.loadUsernames();
+  }
+  
+  async loadUsernames() {
+    if (this.topic.sharedWith && this.topic.sharedWith.length > 0) {
+      for (const sharing of this.topic.sharedWith) {
+        try {
+          this.userService.getUserById(sharing.userId).subscribe(user => {
+            if (user) {
+              this.usernames[sharing.userId] = user.username || 'Unknown User';
+            }
+          });
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+        }
+      }
+    }
+  }
+
+  getUsernameForSharing(sharing: TopicSharing): string {
+    return this.usernames[sharing.userId] || 'Loading...';
   }
 
   dismiss() {

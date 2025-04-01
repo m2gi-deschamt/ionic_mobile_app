@@ -2,7 +2,6 @@ import { Post } from './post';
 
 export interface TopicSharing {
   userId: string;
-  username: string;
   role: 'reader' | 'editor';
 }
 
